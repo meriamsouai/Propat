@@ -21,10 +21,7 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:8080', 'https://46b60a61-5433-4b75-abd0-23ac6daa30b9.sandbox.lovable.dev'],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 
