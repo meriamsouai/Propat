@@ -13,7 +13,13 @@ interface CustomizationPreviewProps {
 
 export const CustomizationPreview = ({ data, editable }: CustomizationPreviewProps) => {
   const [rotation, setRotation] = useState(0);
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotationStartAngle, setRotationStartAngle] = useState(0);
+  const [rotationStartRotation, setRotationStartRotation] = useState(0);
+  const [textSize, setTextSize] = useState({ width: 120, height: 50 });
+  const [logoSize, setLogoSize] = useState({ width: 100, height: 100 });
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const rndRef = useRef<HTMLDivElement | null>(null);
   const [parentSize, setParentSize] = useState({ width: 300, height: 220 });
 
   const downloadPreview = async () => {
@@ -41,6 +47,62 @@ export const CustomizationPreview = ({ data, editable }: CustomizationPreviewPro
       setParentSize({ width: rect.width, height: rect.height });
     }
   }, [data.shape]);
+
+  // Handle rotation with mouse drag
+  const handleRotateMouseDown = (e: React.MouseEvent) => {
+    if (!editable) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Find the Rnd container by traversing up the DOM
+    let element: HTMLElement | null = e.currentTarget as HTMLElement;
+    while (element && element.parentElement) {
+      element = element.parentElement;
+      // Rnd component creates a div with position: absolute
+      if (element.style.position === 'absolute' || getComputedStyle(element).position === 'absolute') {
+        break;
+      }
+    }
+    
+    if (!element) return;
+    
+    setIsRotating(true);
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+    setRotationStartAngle(startAngle);
+    setRotationStartRotation(rotation);
+    rndRef.current = element;
+  };
+
+  useEffect(() => {
+    if (!isRotating || !rndRef.current) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!rndRef.current) return;
+      
+      const rect = rndRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const currentAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+      const angleDiff = currentAngle - rotationStartAngle;
+      setRotation((rotationStartRotation + angleDiff + 360) % 360);
+    };
+
+    const handleMouseUp = () => {
+      setIsRotating(false);
+      rndRef.current = null;
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isRotating, rotationStartAngle, rotationStartRotation, rotation]);
 
   const getShapeStyle = () => {
 
@@ -93,29 +155,36 @@ export const CustomizationPreview = ({ data, editable }: CustomizationPreviewPro
     return colorMap[data.colorSelection.colors[0]] || '#000000';
   };
 
-  const getTextStyle = () => ({
-    color: getTextColor(),
-    fontSize: data.fontSize || "18px",
-    fontWeight: "500",
-    textAlign: "center" as const,
-    wordBreak: "break-word" as const,
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontFamily:
-      data.textStyle === "Helvetica"
-        ? "Arial, sans-serif"
-        : data.textStyle === "Balmoral"
-        ? "serif"
-        : data.textStyle === "Script"
-        ? "cursive"
-        : data.textStyle === "Manuel"
-        ? "monospace"
-        : "sans-serif",
-    pointerEvents: "none" as const,
-  });
+  const getTextStyle = () => {
+    const isItalicStyle = data.textStyle?.includes("Italique");
+    return {
+      color: getTextColor(),
+      fontSize: data.fontSize || "18px",
+      fontWeight: "500",
+      textAlign: "center" as const,
+      wordBreak: "break-word" as const,
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily:
+        data.textStyle === "Helvetica"
+          ? "Arial, sans-serif"
+          : data.textStyle === "Balmoral"
+          ? "serif"
+          : data.textStyle === "Script"
+          ? "cursive"
+          : data.textStyle === "Manuel"
+          ? "monospace"
+          : isItalicStyle
+          ? "Georgia, serif"
+          : "sans-serif",
+      fontStyle: isItalicStyle ? "italic" : "normal",
+      transform: isItalicStyle ? "skew(-5deg, 0)" : "none",
+      pointerEvents: "none" as const,
+    };
+  };
 
 const getSpecialShapeImage = () => {
   if (!data.shape) return null;
@@ -154,22 +223,27 @@ const specialShapeImages: Record<string, { blanc: string; noir: string }> = {
   const specialShapeImage = getSpecialShapeImage();
 
   return (
-    <div className="bg-white rounded-lg border p-6">
-      <h3 className="text-xl font-medium text-primary mb-6 italic">
-        Aperçu de votre plaquette
-      </h3>
-              <Button
+    <div className="bg-gradient-to-br from-white via-white to-muted/20 rounded-2xl border border-primary/20 p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-primary/10">
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-primary to-primary/60 animate-pulse shadow-lg" />
+          <h3 className="text-xl font-semibold text-primary italic tracking-wide">
+            Aperçu de votre plaquette
+          </h3>
+        </div>
+        <Button
           onClick={downloadPreview}
           variant="outline"
           size="sm"
-          className="italic"
+          className="italic smooth-transition hover:scale-105 hover:bg-gradient-to-r hover:from-primary hover:to-primary/90 hover:text-primary-foreground border-primary/30 hover:border-primary shadow-sm"
         >
           <Download className="w-4 h-4 mr-2" />
           Télécharger
         </Button>
+      </div>
       
-      {/* Preview section */}
-      <div ref={previewRef} className="bg-gradient-to-br from-neutral-100 to-neutral-200 p-8 rounded-lg flex items-center justify-center min-h-[400px]">
+      {/* Modern Preview section */}
+      <div ref={previewRef} className="bg-gradient-to-br from-muted/40 via-background to-muted/20 p-8 rounded-2xl flex items-center justify-center min-h-[400px] border border-primary/10 shadow-inner backdrop-blur-sm">
         {data.shape ? (
           <div
             ref={previewRef}
@@ -189,27 +263,44 @@ const specialShapeImages: Record<string, { blanc: string; noir: string }> = {
             {/* ✅ Draggable + Resizable + Rotatable Text */}
             {data.textType === "text" && data.textContent && (
               <Rnd
-                default={{ x: 50, y: 50, width: 120, height: 50 }}
+                default={{ x: 50, y: 50, width: textSize.width, height: textSize.height }}
                 bounds="parent"
                 lockAspectRatio={false}
-                disableDragging={!editable}
-                enableResizing={editable}
+                disableDragging={!editable || isRotating}
+                enableResizing={editable && !isRotating}
+                onResizeStop={(e, direction, ref, d, position) => {
+                  setTextSize({ width: ref.offsetWidth, height: ref.offsetHeight });
+                }}
                 style={{
                   pointerEvents: editable ? "auto" : "none",
-                  border: editable ? "1px solid #3B82F6" : "none", // Blue only if editable
+                  border: editable ? "1px solid #3B82F6" : "none",
+                  padding: "0px",
                 }}
               >
                 <div
                   className="w-full h-full relative flex items-center justify-center"
-                  style={{ transform: `rotate(${rotation}deg)` }}
+                  style={{ 
+                    transform: `rotate(${rotation}deg)`,
+                    padding: "0px",
+                    margin: "0px"
+                  }}
                 >
-                  <span style={getTextStyle()}>{data.textContent}</span>
+                  <span style={{
+                    ...getTextStyle(), 
+                    fontSize: `${Math.min(textSize.width, textSize.height) * 0.25}px`,
+                    padding: "0px",
+                    margin: "0px",
+                    lineHeight: "1.2"
+                  }}>
+                    {data.textContent}
+                  </span>
 
                   {/* 🔄 Rotate Button (only if editable) */}
                   {editable && (
                     <button
-                      onClick={() => setRotation((prev) => (prev + 15) % 360)}
-                      className="absolute -top-5 -right-5 w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center shadow cursor-pointer"
+                      onMouseDown={handleRotateMouseDown}
+                      className="absolute -top-5 -right-5 w-6 h-6 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing z-10 transition-all hover:scale-110"
+                      title="Maintenez et glissez pour tourner"
                     >
                       ↻
                     </button>
@@ -221,16 +312,19 @@ const specialShapeImages: Record<string, { blanc: string; noir: string }> = {
             {/* ✅ Draggable + Resizable + Rotatable Logo */}
             {data.textType === "logo" && data.logoFile && (
               <Rnd
-                default={{ x: 40, y: 40, width: 100, height: 100 }}
+                default={{ x: 40, y: 40, width: logoSize.width, height: logoSize.height }}
                 bounds="parent"
                 lockAspectRatio
                 maxWidth={parentSize.width}
                 maxHeight={parentSize.height}
-                disableDragging={!editable}
-                enableResizing={editable}
+                disableDragging={!editable || isRotating}
+                enableResizing={editable && !isRotating}
+                onResizeStop={(e, direction, ref, d, position) => {
+                  setLogoSize({ width: ref.offsetWidth, height: ref.offsetHeight });
+                }}
                 style={{
                   pointerEvents: editable ? "auto" : "none",
-                  border: editable ? "1px solid #3B82F6" : "none", // Blue only if editable
+                  border: editable ? "1px solid #3B82F6" : "none",
                 }}
               >
                 <div
@@ -241,13 +335,19 @@ const specialShapeImages: Record<string, { blanc: string; noir: string }> = {
                     src={URL.createObjectURL(data.logoFile)}
                     alt="Logo personnalisé"
                     className="w-full h-full object-contain pointer-events-none"
+                    style={{ 
+                      width: '100%', 
+                      height: '100%',
+                      objectFit: 'contain'
+                    }}
                   />
 
                   {/* 🔄 Rotate Button (only if editable) */}
                   {editable && (
                     <button
-                      onClick={() => setRotation((prev) => (prev + 15) % 360)}
-                      className="absolute -top-5 -right-5 w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center shadow cursor-pointer"
+                      onMouseDown={handleRotateMouseDown}
+                      className="absolute -top-5 -right-5 w-6 h-6 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing z-10 transition-all hover:scale-110"
+                      title="Maintenez et glissez pour tourner"
                     >
                       ↻
                     </button>
@@ -258,17 +358,18 @@ const specialShapeImages: Record<string, { blanc: string; noir: string }> = {
           </div>
         ) : (
           <div className="text-center text-muted-foreground">
-            <div className="w-48 h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-sm italic">Choisissez une forme</span>
+            <div className="w-48 h-48 border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center mb-4 bg-white/50">
+              <span className="text-sm italic text-primary/70">Choisissez une forme</span>
             </div>
           </div>
         )}
       </div>
-            {/* Details */}
-      <div className="mt-6 space-y-3 text-sm">
-        <div className="flex justify-between">
-          <span className="font-medium">Type de chocolat:</span>
-          <span className="italic">
+      
+      {/* Modern Details Section */}
+      <div className="mt-6 space-y-3 text-sm bg-gradient-to-br from-muted/40 to-muted/20 p-5 rounded-2xl border border-primary/10 shadow-inner">
+        <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+          <span className="font-semibold text-foreground">Type de chocolat:</span>
+          <span className="italic text-primary font-medium">
             {data.chocolateBase ? 
               (data.chocolateBase === 'pate-a-glasse' ? 'Pâte à glacer' :
                data.chocolateBase === 'couverture' ? 'Couverture' :
@@ -281,50 +382,50 @@ const specialShapeImages: Record<string, { blanc: string; noir: string }> = {
 
         {data.shape && (
           <>
-            <div className="flex justify-between">
-              <span className="font-medium">Forme:</span>
-              <span className="italic">{data.shape.name}</span>
+            <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+              <span className="font-semibold text-foreground">Forme:</span>
+              <span className="italic text-primary font-medium">{data.shape.name}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Dimensions:</span>
-              <span className="italic">{data.shape.dimensions}</span>
+            <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+              <span className="font-semibold text-foreground">Dimensions:</span>
+              <span className="italic text-primary font-medium">{data.shape.dimensions}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Poses par feuille:</span>
-              <span className="italic">{data.shape.posesPerSheet}</span>
+            <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+              <span className="font-semibold text-foreground">Poses par feuille:</span>
+              <span className="italic text-primary font-medium">{data.shape.posesPerSheet}</span>
             </div>
           </>
         )}
 
-        <div className="flex justify-between">
-          <span className="font-medium">Quantité:</span>
-          <span className="italic">
+        <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+          <span className="font-semibold text-foreground">Quantité:</span>
+          <span className="italic text-primary font-medium">
             {data.quantity} feuilles ({Math.ceil(data.quantity / 15)} boîte{Math.ceil(data.quantity / 15) > 1 ? 's' : ''})
           </span>
         </div>
 
         {data.printType && (
-          <div className="flex justify-between">
-            <span className="font-medium">Type de production:</span>
-            <span className="italic">
+          <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+            <span className="font-semibold text-foreground">Type de production:</span>
+            <span className="italic text-primary font-medium">
               {data.printType === 'feuilles-imprimees' ? 'Feuilles imprimées' : 'Thermoformé'}
             </span>
           </div>
         )}
 
         {data.colorSelection.colors.length > 0 && (
-          <div className="flex justify-between">
-            <span className="font-medium">Couleurs d'impression:</span>
-            <span className="italic">
+          <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+            <span className="font-semibold text-foreground">Couleurs d'impression:</span>
+            <span className="italic text-primary font-medium">
               {data.colorSelection.colors.join(', ')} ({data.colorSelection.type?.replace('color', ' couleur')})
             </span>
           </div>
         )}
 
         {data.textType && (
-          <div className="flex justify-between">
-            <span className="font-medium">Type de personnalisation:</span>
-            <span className="italic">
+          <div className="flex justify-between items-center py-2">
+            <span className="font-semibold text-foreground">Type de personnalisation:</span>
+            <span className="italic text-primary font-medium">
               {data.textType === 'text' && 'Texte personnalisé'}
               {data.textType === 'logo' && 'Logo personnalisé'}
             </span>

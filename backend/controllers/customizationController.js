@@ -34,10 +34,12 @@ const createCustomizationOrder = async (req, res) => {
   try {
     const {
       reference,
-      chocolateType,
+      chocolateBase,
+      chocolateColor,
       shape,
       quantity,
-      textColor,
+      printType,
+      colorSelection,
       textType,
       textContent,
       textStyle,
@@ -47,14 +49,16 @@ const createCustomizationOrder = async (req, res) => {
     const orderData = {
       userId: req.user.userId,
       reference,
-      chocolateType,
-      shape: JSON.parse(shape),
+      chocolateBase: chocolateBase || null,
+      chocolateColor: chocolateColor || null,
+      shape: shape ? JSON.parse(shape) : null,
       quantity: parseInt(quantity),
-      textColor,
-      textType,
+      printType: printType || null,
+      colorSelection: colorSelection ? JSON.parse(colorSelection) : null,
+      textType: textType || null,
       textContent: textContent || '',
       textStyle: textStyle || null,
-      customerInfo: JSON.parse(customerInfo)
+      customerInfo: customerInfo ? JSON.parse(customerInfo) : null
     };
 
     // Add logo file info if uploaded
@@ -78,7 +82,8 @@ const createCustomizationOrder = async (req, res) => {
   } catch (error) {
     console.error('Create customization order error:', error);
     res.status(500).json({ 
-      message: 'Erreur lors de la création de la commande de personnalisation' 
+      message: 'Erreur lors de la création de la commande de personnalisation',
+      error: error.message 
     });
   }
 };

@@ -91,7 +91,9 @@ interface ChocolateTypeStepProps {
                     style={{ backgroundColor: color.color }}
                   ></div>
                   <div>
-                    <h4 className="text-lg font-medium text-primary italic">Chocolat {color.name}</h4>
+                    <h4 className="text-lg font-medium text-primary italic">
+                      {selectedBase === 'valrhona' ? color.name : `Chocolat ${color.name}`}
+                    </h4>
                     <p className="text-sm text-muted-foreground italic mt-1">
                       {color.id === 'blanc' ? 'Parfait pour les textes sombres et colorés' : 'Idéal pour les textes clairs et dorés'}
                     </p>

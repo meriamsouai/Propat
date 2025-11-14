@@ -36,10 +36,14 @@ export const TextLogoStep = ({
   };
 
   const textStyles = [
-    { name: "Helvetica", preview: "Propat", description: "Police moderne et claire" },
-    { name: "Balmoral", preview: "Propat", description: "Police élégante avec empattements" },
-    { name: "Script", preview: "Propat", description: "Police cursive et artistique" },
-    { name: "Manuel", preview: "Propat", description: "Police manuscrite personnalisée" },
+    { name: "Helvetica", preview: "Propat", description: "Police moderne et claire", italic: false },
+    { name: "Balmoral", preview: "Propat", description: "Police élégante avec empattements", italic: false },
+    { name: "Script", preview: "Propat", description: "Police cursive et artistique", italic: false },
+    { name: "Manuel", preview: "Propat", description: "Police manuscrite personnalisée", italic: false },
+    { name: "Italique Elegant", preview: "Propat", description: "Style italique élégant pour chocolat", italic: true },
+    { name: "Italique Classique", preview: "Propat", description: "Italique classique pour chocolat", italic: true },
+    { name: "Italique Moderne", preview: "Propat", description: "Italique moderne pour chocolat", italic: true },
+    { name: "Italique Artisanal", preview: "Propat", description: "Italique artisanal pour chocolat", italic: true },
   ];
 
   const fontSizes = [
@@ -125,11 +129,20 @@ export const TextLogoStep = ({
             </Label>
             <Textarea
               id="textContent"
-              placeholder="Entrez votre texte ici..."
+              placeholder="Entrez votre texte ici... (maximum 68 caractères)"
               value={textContent}
-              onChange={(e) => onUpdate({ textContent: e.target.value })}
-              className="min-h-[100px] focus-visible:ring-blueg  "
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 68) {
+                  onUpdate({ textContent: value });
+                }
+              }}
+              className="min-h-[100px] focus-visible:ring-blueg"
+              maxLength={68}
             />
+            <p className="text-xs text-muted-foreground italic">
+              {textContent.length}/68 caractères
+            </p>
           </div>
 {/* Font Size Selection */}
 <div className="space-y-4">
@@ -154,7 +167,7 @@ export const TextLogoStep = ({
           {/* Font Family Selection */}
           <div className="space-y-4">
             <Label className="text-sm font-medium italic">Style d'écriture</Label>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {textStyles.map((style) => (
                 <Card
                   key={style.name}
@@ -176,12 +189,20 @@ export const TextLogoStep = ({
                             ? "serif"
                             : style.name === "Script"
                             ? "cursive"
-                            : "monospace",
+                            : style.name === "Manuel"
+                            ? "monospace"
+                            : "Georgia, serif",
+                        fontStyle: style.italic ? "italic" : "normal",
+                        transform: style.italic ? "skew(-5deg, 0)" : "none"
                       }}
                     >
                       {style.preview}
                     </div>
                     <div>
+                      <p className="font-medium text-sm italic">{style.name}</p>
+                      <p className="text-xs text-muted-foreground italic">
+                        {style.description}
+                      </p>
                     </div>
                   </div>
                 </Card>

@@ -204,9 +204,6 @@ const Admin = () => {
                       {order.userId?.firstName} {order.userId?.lastName}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {order.customerInfo.raisonSociale}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
                       {order.userId?.email}
                     </p>
                   </div>
@@ -296,7 +293,6 @@ const Admin = () => {
                               <h4 className="font-medium mb-2">Informations client</h4>
                               <div className="space-y-1 text-sm">
                                 <p><strong>Nom:</strong> {order.customerInfo.prenom} {order.customerInfo.nom}</p>
-                                <p><strong>Société:</strong> {order.customerInfo.raisonSociale}</p>
                                 <p><strong>Adresse:</strong> {order.customerInfo.ville}, {order.customerInfo.codePostal}</p>
                                 <p><strong>Pays:</strong> {order.customerInfo.pays}</p>
                                 <p><strong>Email:</strong> {order.customerInfo.email}</p>

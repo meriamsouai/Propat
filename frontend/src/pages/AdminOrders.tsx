@@ -183,7 +183,6 @@ const AdminOrders = () => {
                   <TableRow>
                     <TableHead>Référence</TableHead>
                     <TableHead>Client</TableHead>
-                    <TableHead>Société</TableHead>
                     <TableHead>Produit</TableHead>
                     <TableHead>Quantité</TableHead>
                     <TableHead>Statut</TableHead>
@@ -209,7 +208,6 @@ const AdminOrders = () => {
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell>{order.customerInfo.raisonSociale}</TableCell>
                       <TableCell>
                         <div>
                           <p>Chocolat {order.chocolateType}</p>
@@ -338,10 +336,6 @@ const AdminOrders = () => {
                                         <div className="flex justify-between">
                                           <span className="font-medium">Nom:</span>
                                           <span>{order.customerInfo.prenom} {order.customerInfo.nom}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="font-medium">Société:</span>
-                                          <span className="text-right max-w-48 break-words">{order.customerInfo.raisonSociale}</span>
                                         </div>
                                         <div className="flex justify-between">
                                           <span className="font-medium">Email:</span>

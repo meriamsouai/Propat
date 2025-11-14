@@ -7,11 +7,9 @@ import { Minus, Plus } from "lucide-react";
 
 interface QuantityStepProps {
   quantity: number;
-  printType: 'feuilles-imprimees' | 'thermoformed' | null;
   customerInfo: {
     nom: string;
     prenom: string;
-    raisonSociale: string;
     codePostal: string;
     ville: string;
     pays: string;
@@ -22,22 +20,7 @@ interface QuantityStepProps {
   onUpdate: (updates: any) => void;
 }
 
-export const QuantityStep = ({ quantity, printType, customerInfo, onUpdate }: QuantityStepProps) => {
-  const printTypes = [
-    {
-      id: 'feuilles-imprimees',
-      name: 'Feuilles imprimées',
-      ref: 'FPE',
-      description: 'Impression directe sur feuilles'
-    },
-    {
-      id: 'thermoformed',
-      name: 'Thermoformé',
-      ref: 'THE',
-      description: 'Moulage par thermoformage'
-    }
-  ];
-
+export const QuantityStep = ({ quantity, customerInfo, onUpdate }: QuantityStepProps) => {
   const isFirstOrder = !customerInfo.email || customerInfo.email === '';
   const sheetsPerBox = 15;
   const boxes = Math.ceil(quantity / sheetsPerBox);
@@ -62,43 +45,11 @@ export const QuantityStep = ({ quantity, printType, customerInfo, onUpdate }: Qu
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-medium text-primary mb-2 italic">
-          Quantité & Type de production
+          Quantité de feuilles
         </h2>
         <p className="text-muted-foreground italic">
-          Choisissez le type de production et la quantité de feuilles
+          Choisissez la quantité de feuilles pour votre commande
         </p>
-      </div>
-
-      {/* Print Type Selection */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-primary italic">Type de production</h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          {printTypes.map((type) => (
-            <Card
-              key={type.id}
-              className={`p-6 cursor-pointer transition-all hover:shadow-md border-2 ${
-                printType === type.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
-              }`}
-              onClick={() => onUpdate({ printType: type.id })}
-            >
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-bold text-primary italic">
-                    {type.ref}
-                  </span>
-                </div>
-                <div>
-                  <h4 className="text-lg font-medium text-primary italic">
-                    {type.name}
-                  </h4>
-                  <p className="text-sm text-muted-foreground italic mt-1">
-                    {type.description}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
       </div>
 
       {/* Quantity Selection */}
@@ -187,12 +138,6 @@ export const QuantityStep = ({ quantity, printType, customerInfo, onUpdate }: Qu
               <span className="font-medium italic">+{technicalFee} DT</span>
             </div>
           )}
-          <div className="border-t pt-2">
-            <div className="flex justify-between items-center font-medium">
-              <span className="italic">Type:</span>
-              <span className="italic">{printType ? printTypes.find(t => t.id === printType)?.name : 'Non sélectionné'}</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

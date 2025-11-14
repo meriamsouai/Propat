@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 interface CustomerInfo {
   nom: string;
   prenom: string;
-  raisonSociale: string;
   codePostal: string;
   ville: string;
   pays: string;
@@ -32,7 +31,6 @@ export const CustomerInfoStep = ({ customerInfo, onUpdate }: CustomerInfoStepPro
       onUpdate({
         nom: user.nom || user.lastName || '',
         prenom: user.prenom || user.firstName || '',
-        raisonSociale: user.companyName || '',
         codePostal: user.zipCode || '',
         ville: user.city || '',
         pays: user.country || '',
@@ -108,20 +106,6 @@ export const CustomerInfoStep = ({ customerInfo, onUpdate }: CustomerInfoStepPro
             onChange={(e) => handleInputChange('prenom', e.target.value)}
             placeholder="Votre prénom"
             disabled={isAuthenticated && !isEditing}
-            required
-          />
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="raisonSociale" className="text-sm font-medium italic">
-            Raison sociale *
-          </Label>
-          <Input
-            id="raisonSociale"
-            value={customerInfo.raisonSociale}
-            onChange={(e) => handleInputChange('raisonSociale', e.target.value)}
-            placeholder="Nom de votre entreprise"
-            className="focus-visible:ring-accent"
             required
           />
         </div>

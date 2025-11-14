@@ -43,15 +43,18 @@ export const ColorSelectionStep = ({
 
   const colorTypes = [
     { id: '1color', name: '1 Couleur', description: 'Impression en une seule couleur' },
-    { id: '2color', name: '2 Couleurs', description: 'Impression en deux couleurs' },
-    { id: '3color', name: '3 Couleurs', description: 'Impression en trois couleurs' }
+    { id: '2color', name: '2 Couleurs', description: 'Impression en deux couleurs' }
   ];
 
   const textStyles = [
-    { name: 'Helvetica', preview: 'Propat', description: 'Police moderne et claire' },
-    { name: 'Balmoral', preview: 'Propat', description: 'Police élégante avec empattements' },
-    { name: 'Script', preview: 'Propat', description: 'Police cursive et artistique' },
-    { name: 'Manuel', preview: 'Propat', description: 'Police manuscrite personnalisée' },
+    { name: 'Helvetica', preview: 'Propat', description: 'Police moderne et claire', italic: false },
+    { name: 'Balmoral', preview: 'Propat', description: 'Police élégante avec empattements', italic: false },
+    { name: 'Script', preview: 'Propat', description: 'Police cursive et artistique', italic: false },
+    { name: 'Manuel', preview: 'Propat', description: 'Police manuscrite personnalisée', italic: false },
+    { name: 'Italique Elegant', preview: 'Propat', description: 'Style italique élégant pour chocolat', italic: true },
+    { name: 'Italique Classique', preview: 'Propat', description: 'Italique classique pour chocolat', italic: true },
+    { name: 'Italique Moderne', preview: 'Propat', description: 'Italique moderne pour chocolat', italic: true },
+    { name: 'Italique Artisanal', preview: 'Propat', description: 'Italique artisanal pour chocolat', italic: true },
   ];
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,7 +65,7 @@ export const ColorSelectionStep = ({
     }
   };
 
-  const handleColorTypeChange = (type: '1color' | '2color' | '3color') => {
+  const handleColorTypeChange = (type: '1color' | '2color') => {
     onUpdate({ 
       colorSelection: { 
         type, 
@@ -72,7 +75,7 @@ export const ColorSelectionStep = ({
   };
 
   const handleColorSelection = (colorId: string) => {
-    const maxColors = colorSelection.type === '1color' ? 1 : colorSelection.type === '2color' ? 2 : 3;
+    const maxColors = colorSelection.type === '1color' ? 1 : 2;
     let newColors = [...colorSelection.colors];
     
     if (newColors.includes(colorId)) {
@@ -91,7 +94,7 @@ export const ColorSelectionStep = ({
 
   const canSelectMoreColors = () => {
     if (!colorSelection.type) return false;
-    const maxColors = colorSelection.type === '1color' ? 1 : colorSelection.type === '2color' ? 2 : 3;
+    const maxColors = colorSelection.type === '1color' ? 1 : 2;
     return colorSelection.colors.length < maxColors;
   };
 
@@ -116,7 +119,7 @@ export const ColorSelectionStep = ({
               className={`p-4 cursor-pointer transition-all hover:shadow-md border-2 ${
                 colorSelection.type === type.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
               }`}
-              onClick={() => handleColorTypeChange(type.id as '1color' | '2color' | '3color')}
+              onClick={() => handleColorTypeChange(type.id as '1color' | '2color')}
             >
               <div className="text-center space-y-2">
                 <h4 className="font-medium text-primary italic">{type.name}</h4>
@@ -131,7 +134,7 @@ export const ColorSelectionStep = ({
       {colorSelection.type && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-primary italic">
-            Sélectionnez vos couleurs ({colorSelection.colors.length}/{colorSelection.type === '1color' ? 1 : colorSelection.type === '2color' ? 2 : 3})
+            Sélectionnez vos couleurs ({colorSelection.colors.length}/{colorSelection.type === '1color' ? 1 : 2})
           </h3>
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {availableColors.map((color) => (
@@ -204,16 +207,25 @@ export const ColorSelectionStep = ({
             </Label>
             <Textarea
               id="textContent"
-              placeholder="Entrez votre texte ici..."
+              placeholder="Entrez votre texte ici... (maximum 68 caractères)"
               value={textContent}
-              onChange={(e) => onUpdate({ textContent: e.target.value })}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 68) {
+                  onUpdate({ textContent: value });
+                }
+              }}
               className="min-h-[100px]"
+              maxLength={68}
             />
+            <p className="text-xs text-muted-foreground italic">
+              {textContent.length}/68 caractères
+            </p>
           </div>
 
           <div className="space-y-4">
             <Label className="text-sm font-medium italic">Style d'écriture</Label>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {textStyles.map((style) => (
                 <Card
                   key={style.name}
@@ -230,7 +242,10 @@ export const ColorSelectionStep = ({
                           style.name === 'Helvetica' ? 'Arial, sans-serif' :
                           style.name === 'Balmoral' ? 'serif' :
                           style.name === 'Script' ? 'cursive' :
-                          'monospace'
+                          style.name === 'Manuel' ? 'monospace' :
+                          'Georgia, serif',
+                        fontStyle: style.italic ? 'italic' : 'normal',
+                        transform: style.italic ? 'skew(-5deg, 0)' : 'none'
                       }}
                     >
                       {style.preview}
